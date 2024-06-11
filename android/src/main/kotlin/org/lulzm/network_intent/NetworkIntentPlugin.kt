@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.StreamHandler
@@ -41,11 +42,16 @@ class NetworkIntentPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, Dis
     private val discoveryHandler: Handler = Handler(Looper.getMainLooper())
 
     private lateinit var wifiManager: WifiManager
-    private lateinit var wifiLock: WifiManager.WifiLock
-    private lateinit var multicastLock: MulticastLock
+    private var multicastLock: MulticastLock? = null
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
+
+        wifiManager = getSystemService(context, WifiManager::class.java) as WifiManager
+        multicastLock = wifiManager.createMulticastLock("network_intent").also {
+            it.setReferenceCounted(true)
+        }
+
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "network_intent")
         channel.setMethodCallHandler(this)
         eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "network_intent_events")
@@ -71,14 +77,6 @@ class NetworkIntentPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, Dis
     }
 
     private fun startDiscovery(call: MethodCall, result: Result) {
-        wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        wifiLock = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            wifiManager.createWifiLock(WifiManager.WIFI_INTERFACE_TYPE_AP, "network_intent")
-        } else {
-            wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "network_intent")
-        }
-        multicastLock = wifiManager.createMulticastLock("network_intent")
-        acquireWifiLock()
         acquireMulticastLock()
 
         val address = call.argument<String>("address")
@@ -120,7 +118,17 @@ class NetworkIntentPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, Dis
         } catch (e: Exception) {
             discovery?.disable()
             discoveryStarted = false
-            result.error("DiscoveryException", e.message, null)
+
+            eventHandler.post {
+                eventSink?.success(
+                    mapOf(
+                        "type" to NetworkIntentType.DISCOVERY_ERROR.name,
+                        "error" to e.message,
+                    )
+                )
+            }
+            
+            result.success(false)
         }
     }
 
@@ -186,8 +194,6 @@ class NetworkIntentPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, Dis
     override fun onIntentDiscovered(address: InetAddress?, intent: Intent?) {
         val hasExtra = intent?.hasExtra(INTENT_KEY) ?: false
 
-        Log.i("NetworkIntentPlugin", "onIntentDiscovered: $address, $hasExtra")
-
         if (!hasExtra) return
 
         val result = intent?.getStringExtra(INTENT_KEY)
@@ -204,44 +210,23 @@ class NetworkIntentPlugin : FlutterPlugin, MethodCallHandler, StreamHandler, Dis
     }
 
     private fun acquireMulticastLock() {
-        Log.i("MulticastLock", "isHeld Before: ${multicastLock.isHeld}")
-
-        if (!multicastLock.isHeld) {
-            multicastLock.acquire()
+        if (multicastLock?.isHeld == false) {
+            multicastLock?.acquire()
         }
-
-        Log.i("MulticastLock", "isHeld After: ${multicastLock.isHeld}")
     }
 
     private fun releaseMulticastLock() {
-        if (multicastLock.isHeld) {
-            multicastLock.release()
-        }
-    }
-
-    private fun acquireWifiLock() {
-        Log.i("WifiLock", "isHeld Before: ${wifiLock.isHeld}")
-
-        if (!wifiLock.isHeld) {
-            wifiLock.acquire()
-        }
-
-        Log.i("WifiLock", "isHeld After: ${wifiLock.isHeld}")
-    }
-
-    private fun releaseWifiLock() {
-        if (wifiLock.isHeld) {
-            wifiLock.release()
+        if (multicastLock?.isHeld == true) {
+            multicastLock?.release()
         }
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        releaseMulticastLock()
         eventHandler.removeCallbacksAndMessages(null)
         discoveryHandler.removeCallbacksAndMessages(null)
         channel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         eventSink = null
-        releaseWifiLock()
-        releaseMulticastLock()
     }
 }

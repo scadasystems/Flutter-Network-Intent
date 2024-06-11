@@ -18,11 +18,6 @@ class MockNetworkIntentPlatform with MockPlatformInterfaceMixin implements Netwo
   }
 
   @override
-  Future<bool> initDiscovery() {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> dispose() {
     throw UnimplementedError();
   }
@@ -37,7 +32,15 @@ class MockNetworkIntentPlatform with MockPlatformInterfaceMixin implements Netwo
   }
 
   @override
-  void sendMessage(String message) {}
+  Future<bool> initDiscovery(
+      {String address = '225.4.5.6', int port = 5775, String intentName = 'NETWORK_INTENT_MESSAGE'}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> sendMessage(String message) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

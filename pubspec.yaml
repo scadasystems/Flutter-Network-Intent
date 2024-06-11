@@ -1,6 +1,6 @@
 name: network_intent
 description: "Intent over the network project."
-version: 0.0.1
+version: 0.0.2
 homepage:
 
 environment:
