@@ -20,8 +20,17 @@ class MethodChannelNetworkIntent extends NetworkIntentPlatform {
   StreamSubscription<dynamic>? _onListener;
 
   @override
-  Future<bool> initDiscovery() async {
-    return await methodChannel.invokeMethod<bool>('initDiscovery') ?? false;
+  Future<bool> initDiscovery({
+    String address = '225.4.5.6',
+    int port = 5775,
+    String intentName = 'NETWORK_INTENT_MESSAGE',
+  }) async {
+    return await methodChannel.invokeMethod<bool>('initDiscovery', {
+          'address': address,
+          'port': port,
+          'intentName': intentName,
+        }) ??
+        false;
   }
 
   @override
@@ -75,8 +84,8 @@ class MethodChannelNetworkIntent extends NetworkIntentPlatform {
   }
 
   @override
-  void sendMessage(String message) {
-    methodChannel.invokeMethod('sendMessage', {'message': message});
+  Future<void> sendMessage(String message) async {
+    return await methodChannel.invokeMethod('sendMessage', {'message': message});
   }
 
   @override

@@ -21,6 +21,8 @@ class _MyAppState extends State<MyApp> {
 
   final StringBuffer _stringBuffer = StringBuffer();
 
+  final _textController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -29,12 +31,15 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
+    _textController.dispose();
     _stop();
     super.dispose();
   }
 
   void _start() async {
-    final isInit = await _networkIntentPlugin.initDiscovery();
+    final isInit = await _networkIntentPlugin.initDiscovery(
+      port: 5776,
+    );
 
     _setMsg('isInit: $isInit');
 
@@ -54,12 +59,11 @@ class _MyAppState extends State<MyApp> {
     );
 
     try {
-      await _networkIntentPlugin.enableDiscovery();
+      final enable = await _networkIntentPlugin.enableDiscovery();
+      _setMsg('enableDiscovery: $enable');
     } catch (e) {
       _setMsg('enableDiscovery error: $e');
     }
-
-    _networkIntentPlugin.sendMessage('테스트');
   }
 
   void _stop() async {
@@ -81,9 +85,34 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('NetworkIntent example app'),
         ),
-        body: Center(
-          child: Text(
-            _stringBuffer.toString(),
+        body: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              TextField(
+                controller: _textController,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: '메시지 보내기',
+                  suffix: IconButton(
+                    onPressed: () {
+                      final text = _textController.text;
+
+                      _networkIntentPlugin.sendMessage(text);
+                    },
+                    icon: const Icon(Icons.send),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    _stringBuffer.toString(),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -61,7 +61,7 @@ class DiscoveryThread extends Thread {
         listener.onDiscoveryStopped();
     }
 
-    protected MulticastSocket createSocket() throws UnknownHostException, IOException {
+    protected MulticastSocket createSocket() throws IOException {
         InetAddress address = InetAddress.getByName(multicastAddress);
 
         MulticastSocket socket = new MulticastSocket(port);
@@ -100,6 +100,8 @@ class DiscoveryThread extends Thread {
                 listener.onIntentDiscovered(packet.getAddress(), intent);
             } catch (URISyntaxException exception) {
                 Log.v(TAG, "Received UDP packet that could not be parsed as Intent");
+            } finally {
+//                socket.disconnect();
             }
         }
     }

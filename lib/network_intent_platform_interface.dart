@@ -20,7 +20,11 @@ abstract class NetworkIntentPlatform extends PlatformInterface {
   }
 
   /// Init Discovery
-  Future<bool> initDiscovery() {
+  Future<bool> initDiscovery({
+    String address = '225.4.5.6',
+    int port = 5775,
+    String intentName = 'NETWORK_INTENT_MESSAGE',
+  }) {
     throw UnimplementedError('startDiscovery() has not been implemented.');
   }
 
@@ -44,7 +48,7 @@ abstract class NetworkIntentPlatform extends PlatformInterface {
     throw UnimplementedError('onListener() has not been implemented.');
   }
 
-  void sendMessage(String message) {
+  Future<void> sendMessage(String message) {
     throw UnimplementedError('sendMessage() has not been implemented.');
   }
 

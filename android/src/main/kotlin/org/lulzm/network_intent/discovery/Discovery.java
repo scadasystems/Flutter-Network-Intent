@@ -54,7 +54,7 @@ public class Discovery {
      * @param listener The {@link DiscoveryListener} that will be notified about
      *                 incoming {@link Intent}s.
      */
-    public void setDisoveryListener(DiscoveryListener listener) {
+    public void setDiscoveryListener(DiscoveryListener listener) {
         this.listener = listener;
     }
 
@@ -73,7 +73,7 @@ public class Discovery {
      * @throws DiscoveryException if discovery could not be enabled.
      */
     public void enable(DiscoveryListener listener) throws DiscoveryException {
-        setDisoveryListener(listener);
+        setDiscoveryListener(listener);
         enable();
     }
 
@@ -81,11 +81,8 @@ public class Discovery {
      * Enables the {@link Discovery} so that it will monitor the network for
      * {@link Intent}s and notify the set {@link DiscoveryListener} instance.
      *
-     * @throws DiscoveryException if discovery could not be enabled.
-     * @throws IllegalStateException if no listener has been set
-     * @throws IllegalAccessError if this {@link Discovery} is already enabled
      */
-    public void enable() throws DiscoveryException {
+    public void enable() {
         if (listener == null) {
             throw new IllegalStateException("No listener set");
         }

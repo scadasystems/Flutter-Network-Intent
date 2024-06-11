@@ -7,8 +7,12 @@ import 'network_intent_platform_interface.dart';
 class NetworkIntent {
   /// Init Discovery
   /// [return]: true if success, false if fail
-  Future<bool> initDiscovery() {
-    return NetworkIntentPlatform.instance.initDiscovery();
+  Future<bool> initDiscovery({
+    String address = '225.4.5.6',
+    int port = 5775,
+    String intentName = 'NETWORK_INTENT_MESSAGE',
+  }) {
+    return NetworkIntentPlatform.instance.initDiscovery(address: address, port: port, intentName: intentName);
   }
 
   /// Enable Discovery
@@ -47,7 +51,7 @@ class NetworkIntent {
 
   /// Send Message
   /// - Only support string
-  void sendMessage(String message) {
+  Future<void> sendMessage(String message) {
     return NetworkIntentPlatform.instance.sendMessage(message);
   }
 
