@@ -1,3 +1,5 @@
+[![Korean](https://img.shields.io/badge/Language-Korean-blueviolet?style=for-the-badge)](README_KR.md)
+
 
 # NetworkIntent
 
